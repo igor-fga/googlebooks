@@ -4,24 +4,24 @@ package com.example.ifgan.googlebooks;
 public class Book {
 
     /** Name of the book */
-    private String mName;
+    private String mTitle;
 
     /**
      *Constructs a new object.
      *
-     * @param name is the name of the book
+     * @param title is the name of the book
      */
 
-    public Book (String name)
+    public Book (String title)
     {
-        mName = name;
+        mTitle = title;
     }
 
     /**
      * Returns the name of the book.
      */
     public String getName() {
-        return mName;
+        return mTitle;
     }
 
 }
