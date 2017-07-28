@@ -20,33 +20,25 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.List;
 
 public class SearchResultActivity extends AppCompatActivity {
 
-    /** Tag for the log messages */
+    /**
+     * Tag for the log messages
+     */
     public static final String LOG_TAG = SearchResultActivity.class.getSimpleName();
 
-    /** URL to query the Google dataset for earthquake information */
+    /**
+     * URL to query the Google dataset for earthquake information
+     */
     private static final String GOOGLE_REQUEST_URL =
-            "https://www.googleapis.com/books/v1/volumes?q=android&maxResults=1";
+            "https://www.googleapis.com/books/v1/volumes?q=android&maxResults=2";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_search_result);
-
-//        // Get the list of books from {@link QueryUtils}
-//        ArrayList<Book> books = QueryUtils.extractBook();
-//
-//        // Find a reference to the {@link ListView} in the layout
-//        ListView bookListView = (ListView) findViewById(R.id.list);
-//
-//        // Create a new adapter that takes the list of books as input
-//        final BookAdapter adapter = new BookAdapter(this, books);
-//
-//        // Set the adapter on the {@link ListView}
-//        // so the list can be populated in the user interface
-//        bookListView.setAdapter(adapter);
 
         BookAsyncTask task = new BookAsyncTask();
         URL url = createUrl(GOOGLE_REQUEST_URL);
@@ -67,10 +59,9 @@ public class SearchResultActivity extends AppCompatActivity {
         return url;
     }
 
-    private class BookAsyncTask extends AsyncTask<URL, Void, Book>
-    {
+    private class BookAsyncTask extends AsyncTask<URL, Void, List<Book>> {
         @Override
-        protected Book doInBackground(URL... params) {
+        protected List<Book> doInBackground(URL... params) {
 
             // Perform HTTP request to the URL and receive a JSON response back
             String jsonResponse = "";
@@ -80,18 +71,37 @@ public class SearchResultActivity extends AppCompatActivity {
                 Log.e(LOG_TAG, "Problem making the HTTP request.", e);
             }
 
-            // Extract relevant fields from the JSON response and create an {@link Event} object
-            Book book = extractBookFromJson(jsonResponse);
+            List<Book> books = extractBookFromJson(jsonResponse);
 
-            // Return the {@link Event} object as the result fo the {@link TsunamiAsyncTask}
-            return book;
+            return books;
         }
 
         @Override
-        protected void onPostExecute(Book book) {
-            super.onPostExecute(book);
+        protected void onPostExecute(List<Book> books) {
+
+            //super.onPostExecute(book);
+            if (books == null) {
+                return;
+            }
+
+            updateUi(books);
         }
 
+        /**
+         * Update the screen to display information from the given {@link Book}.
+         */
+        private void updateUi(List<Book> books) {
+
+            // Find a reference to the {@link ListView} in the layout
+            ListView bookListView = (ListView) findViewById(R.id.list);
+
+            // Create a new adapter that takes the list of books as input
+            final BookAdapter adapter = new BookAdapter(SearchResultActivity.this, books);
+
+            // Set the adapter on the {@link ListView}
+            // so the list can be populated in the user interface
+            bookListView.setAdapter(adapter);
+        }
 
         /**
          * Convert the {@link InputStream} into a String which contains the
@@ -157,7 +167,10 @@ public class SearchResultActivity extends AppCompatActivity {
          * Return an {@link Book} object by parsing out information
          * about the first earthquake from the input earthquakeJSON string.
          */
-        private Book extractBookFromJson(String bookJSON) {
+        private List<Book> extractBookFromJson(String bookJSON) {
+
+            List<Book> books = new ArrayList<>();
+
             // If the JSON string is empty or null, then return early.
             if (TextUtils.isEmpty(bookJSON)) {
                 return null;
@@ -168,21 +181,23 @@ public class SearchResultActivity extends AppCompatActivity {
                 JSONArray itemArray = baseJsonResponse.getJSONArray("items");
 
                 // If there are results in the features array
-                if (itemArray.length() > 0) {
+                for (int i = 0; i < itemArray.length(); i++) {
+
                     // Extract out the first feature (which is an earthquake)
-                    JSONObject firstItem = itemArray.getJSONObject(0);
+                    JSONObject firstItem = itemArray.getJSONObject(i);
                     JSONObject volumeInfo = firstItem.getJSONObject("volumeInfo");
 
                     // Extract out the title, time, and tsunami values
                     String title = volumeInfo.getString("title");
 
                     // Create a new {@link Event} object
-                    return new Book(title);
+                    Book book = new Book(title);
+                    books.add(book);
                 }
             } catch (JSONException e) {
                 Log.e(LOG_TAG, "Problem parsing the earthquake JSON results", e);
             }
-            return null;
+            return books;
         }
     }
 }
