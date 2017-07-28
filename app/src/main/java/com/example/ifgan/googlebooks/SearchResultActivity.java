@@ -33,7 +33,7 @@ public class SearchResultActivity extends AppCompatActivity {
      * URL to query the Google dataset for earthquake information
      */
     private static final String GOOGLE_REQUEST_URL =
-            "https://www.googleapis.com/books/v1/volumes?q=android&maxResults=2";
+            "https://www.googleapis.com/books/v1/volumes?q=android&maxResults=3";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -187,11 +187,14 @@ public class SearchResultActivity extends AppCompatActivity {
                     JSONObject firstItem = itemArray.getJSONObject(i);
                     JSONObject volumeInfo = firstItem.getJSONObject("volumeInfo");
 
-                    // Extract out the title, time, and tsunami values
-                    String title = volumeInfo.getString("title");
+                    // Extract out the title, author
+                    String title  = volumeInfo.getString("title");
+                    String author = volumeInfo.getString("authors").toString();
+                    //Remove char from string
+                    author = author.replace("[", "").replace("]", "").replace("\"", " ");
 
                     // Create a new {@link Event} object
-                    Book book = new Book(title);
+                    Book book = new Book(title, author);
                     books.add(book);
                 }
             } catch (JSONException e) {

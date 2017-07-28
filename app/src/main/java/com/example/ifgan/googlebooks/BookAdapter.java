@@ -32,11 +32,14 @@ public class BookAdapter extends ArrayAdapter<Book> {
         // Find the book at the given position in the list of books
         Book currentBook = getItem(position);
 
-        TextView nameView = (TextView) listItemView.findViewById(R.id.title);
+        TextView titleView = (TextView) listItemView.findViewById(R.id.title);
+        TextView authorView = (TextView) listItemView.findViewById(R.id.author);
 
-        String originalLocation = currentBook.getName();
+        String bookTitle = currentBook.getName();
+        String bookAuthor = currentBook.getAuthor();
 
-        nameView.setText(originalLocation);
+        titleView.setText(bookTitle);
+        authorView.setText(bookAuthor);
 
         return listItemView;
 
