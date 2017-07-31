@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">Google Books</string>
+    <string name="empty_search">Input the book name</string>
+    <string name="disconnect">No internet signal</string>
 </resources>

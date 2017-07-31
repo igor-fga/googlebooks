@@ -1,11 +1,16 @@
 package com.example.ifgan.googlebooks;
 
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
+import android.widget.EditText;
 import android.widget.ListView;
+import android.widget.TextView;
+import android.widget.Toast;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -33,17 +38,23 @@ public class SearchResultActivity extends AppCompatActivity {
      * URL to query the Google dataset for earthquake information
      */
     private static final String GOOGLE_REQUEST_URL =
-            "https://www.googleapis.com/books/v1/volumes?q=android&maxResults=3";
+            "https://www.googleapis.com/books/v1/volumes?q=";
+
+    private String editSearch;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_search_result);
 
+
+        editSearch = getIntent().getStringExtra("EditTextValue");
+
         BookAsyncTask task = new BookAsyncTask();
-        URL url = createUrl(GOOGLE_REQUEST_URL);
+        URL url = createUrl(GOOGLE_REQUEST_URL + editSearch + "&maxResults=5");
         task.execute(url);
     }
+
 
     /**
      * Returns new URL object from the given string URL.
@@ -150,7 +161,7 @@ public class SearchResultActivity extends AppCompatActivity {
                     Log.e(LOG_TAG, "Error response code: " + urlConnection.getResponseCode());
                 }
             } catch (IOException e) {
-                Log.e(LOG_TAG, "Problem retrieving the earthquake JSON results.", e);
+                Log.e(LOG_TAG, "Problem retrieving the book JSON results.", e);
             } finally {
                 if (urlConnection != null) {
                     urlConnection.disconnect();
@@ -165,7 +176,7 @@ public class SearchResultActivity extends AppCompatActivity {
 
         /**
          * Return an {@link Book} object by parsing out information
-         * about the first earthquake from the input earthquakeJSON string.
+         * about the first book from the input bookJSON string.
          */
         private List<Book> extractBookFromJson(String bookJSON) {
 
@@ -183,13 +194,13 @@ public class SearchResultActivity extends AppCompatActivity {
                 // If there are results in the features array
                 for (int i = 0; i < itemArray.length(); i++) {
 
-                    // Extract out the first feature (which is an earthquake)
+                    // Extract out the first volumeinfo (which is an book)
                     JSONObject firstItem = itemArray.getJSONObject(i);
                     JSONObject volumeInfo = firstItem.getJSONObject("volumeInfo");
 
                     // Extract out the title, author
-                    String title  = volumeInfo.getString("title");
-                    String author = volumeInfo.getString("authors").toString();
+                    String title = volumeInfo.optString("title");
+                    String author = volumeInfo.optString("authors").toString();
                     //Remove char from string
                     author = author.replace("[", "").replace("]", "").replace("\"", " ");
 
@@ -198,7 +209,7 @@ public class SearchResultActivity extends AppCompatActivity {
                     books.add(book);
                 }
             } catch (JSONException e) {
-                Log.e(LOG_TAG, "Problem parsing the earthquake JSON results", e);
+                Log.e(LOG_TAG, "Problem parsing the book JSON results", e);
             }
             return books;
         }
